@@ -1,0 +1,130 @@
+%YAML 1.2
+---
+name: kickstart
+version: 2
+file_extensions:
+  - ks
+scope: source.kickstart
+
+contexts:
+  main:
+    - include: commands
+    - include: comments
+    - include: sections
+
+  comments:
+    - match: \s*#
+      scope: comment.line.kickstart
+      push: comment-body
+
+  comment-body:
+    - meta_scope: comment.line.kickstart
+    - match: \n
+      pop: true
+
+  strings:
+    - match: '"'
+      scope: string.quoted.kickstart
+      push: string-double-quote
+    - match: "'"
+      scope: string.quoted.kickstart
+      push: string-single-quote
+  string-double-quote:
+    - meta_scope: string.quoted.kickstart
+    - match: \\"
+    - match: '"'
+      pop: true
+  string-single-quote:
+    - meta_scope: string.quoted.kickstart
+    - match: \\'
+    - match: "'"
+      pop: true
+
+  commands:
+    - match: ^\s*(\w+)
+      scope: meta.statement.command.kickstart
+      captures:
+        1: entity.name.command.kickstart meta.statement.command.name
+      push: command-arguments
+
+  command-arguments:
+    - meta_scope: string.unquoted.argument.kickstart meta.argument.kickstart
+    - match: $
+      pop: true
+
+  sections:
+    - include: section-header-packages
+    - include: section-header-scripts
+    - include: section-header-addons
+    - include: section-header-includes
+
+  section-header-packages:
+    - match: (%packages)
+      scope: keyword.control.packages.kickstart
+      push: section-packages
+  section-packages:
+    - meta_scope: meta.section.packages.kickstart
+    - match: (%end)
+      scope: keyword.control.packages.kickstart
+      pop: true
+    - include: comments
+    - match: ^\s*(-)?@\^.*$
+      scope: string.unquoted.packages.environment.kickstart
+      captures:
+        1: keyword.operator.logical.not.kickstart
+    - match: ^\s*(-)?@.*$
+      scope: string.unquoted.packages.group.kickstart
+      captures:
+        1: keyword.operator.logical.not.kickstart
+    - match: ^\s*(-)
+      captures:
+        1: keyword.operator.logical.not.kickstart
+    - match: \*
+      scope: variable.language.special.wildcard.kickstart
+
+  section-header-scripts:
+    - match: (%(pre-install|pre|post|onerror))
+      scope: meta.section.script.kickstart
+      captures:
+        1: keyword.control.script.kickstart
+      push: section-scripts
+  section-scripts:
+    - match: .*--interpreter=perl.*$
+      embed: scope:source.perl
+      escape: (%end)
+      escape_captures:
+        1: keyword.control.script.kickstart
+      pop: true
+    - match: .*--interpreter=python.*$
+      embed: scope:source.python
+      escape: (%end)
+      escape_captures:
+        1: keyword.control.script.kickstart
+      pop: true
+    - match: .*$
+      embed: scope:source.shell
+      escape: (%end)
+      escape_captures:
+        1: keyword.control.script.kickstart
+      pop: true
+
+  section-header-addons:
+    - match: (%addon)\s*(\S+)(.*)$
+      scope: meta.section.addon.kickstart
+      captures:
+        1: keyword.control.packages.kickstart
+        2: string.unquoted.addon.kickstart
+        3: meta.argument.kickstart
+      push: section-addons
+  section-addons:
+    - match: (%end)
+      scope: keyword.control.addons.kickstart
+      pop: true
+    - include: comments
+    - include: strings
+
+  section-header-includes:
+    - match: (%include)\s*(\S+)\s*$
+      captures:
+        1: keyword.control.include.kickstart
+        2: meta.argument.kickstart
