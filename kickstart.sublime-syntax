@@ -13,7 +13,7 @@ contexts:
     - include: sections
 
   comments:
-    - match: \s*#
+    - match: \#
       scope: comment.line.kickstart
       push: comment-body
 
@@ -49,6 +49,7 @@ contexts:
 
   command-arguments:
     - meta_scope: string.unquoted.argument.kickstart meta.argument.kickstart
+    - include: comments
     - match: $
       pop: true
 
