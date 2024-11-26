@@ -48,10 +48,18 @@ contexts:
       push: command-arguments
 
   command-arguments:
-    - meta_scope: string.unquoted.argument.kickstart meta.argument.kickstart
-    - include: comments
-    - match: $
+    - meta_scope: meta.argument.kickstart
+    - match: \n
       pop: true
+    - include: comments
+    - match: '"'
+      push: string-double-quote
+      scope: string.quoted.argument.kickstart
+    - match: "'"
+      push: string-single-quote
+      scope: string.quoted.argument.kickstart
+    - match: .
+      scope: unquoted.argument.kickstart
 
   sections:
     - include: section-header-packages
