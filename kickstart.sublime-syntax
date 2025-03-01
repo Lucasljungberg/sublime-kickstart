@@ -15,12 +15,16 @@ contexts:
   comments:
     - match: \#
       scope: comment.line.kickstart
-      push: comment-body
+      push: comment-line
 
-  comment-body:
-    - meta_scope: comment.line.kickstart
+  comment-line:
     - match: \n
       pop: true
+    - include: comment-body
+
+  comment-body:
+    - match: .
+      scope: comment.line.kickstart
 
   strings:
     - match: '"'
@@ -62,20 +66,34 @@ contexts:
       scope: unquoted.argument.kickstart
 
   sections:
-    - include: section-header-packages
+    - include: entire-package-section
     - include: section-header-scripts
     - include: section-header-addons
     - include: section-header-includes
 
-  section-header-packages:
+  entire-package-section:
     - match: (%packages)
       scope: keyword.control.packages.kickstart
+      push: section-header-packages
+  section-header-packages:
+    - match: "#.+\n"
+      scope: comment.line.kickstart
       push: section-packages
+    - match: \n
+      push: section-packages
+    - match: '"'
+      scope: packages.argument.kickstart string.quoted.argument.kickstart
+      push: string-double-quote
+    - match: "'"
+      scope: packages.argument.kickstart string.quoted.argument.kickstart
+      push: string-single-quote
+    - match: .
+      scope: packages.argument.kickstart unquoted.argument.kickstart
   section-packages:
     - meta_scope: meta.section.packages.kickstart
     - match: (%end)
       scope: keyword.control.packages.kickstart
-      pop: true
+      pop: 2
     - include: comments
     - match: ^\s*(-)?@\^.*$
       scope: string.unquoted.packages.environment.kickstart
@@ -104,7 +122,7 @@ contexts:
       escape_captures:
         1: keyword.control.script.kickstart
       pop: true
-    - match: .*--interpreter=python.*$
+    - match: .*--interpreter=(/.+)*/?python.*$
       embed: scope:source.python
       escape: (%end)
       escape_captures:

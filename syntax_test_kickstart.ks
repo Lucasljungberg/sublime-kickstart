@@ -93,6 +93,9 @@ initial-setup
 kernel-core
 -dracut-config-rescue
 -generic-release*
+# <- keyword.operator.logical.not.kickstart
+#               ^ variable.language.special.wildcard.kickstart
+
 -initial-setup-gui
 -kernel
 -linux-firmware
@@ -101,12 +104,25 @@ kernel-core
 -smartmontools
 -smartmontools-selinux
 
+
+%end
+
+%packages
+# ^ keyword.control.packages.kickstart
+openssh-server
+%end
+
+%packages
+# ^ keyword.control.packages.kickstart
+NetworkManager
 %end
 ##### end package list ###############################################
 
 
 ##### begin kickstart post script ####################################
 %post --erroronfail  --log=/root/anaconda-post-1.log
+# ^ keyword.control.script.kickstart
+# < source.bash
 
 # Find the architecture we are on
 arch=$(uname -m)
@@ -200,3 +216,18 @@ echo .
 
 %end
 ##### end custom post script ########################################
+# < -source.bash
+
+%post --interpreter=python
+# ^ meta.section.script.kickstart
+# ^ keyword.control.script.kickstart
+# < source.python
+print("Kickstart is cool!")
+%end
+
+%addon com_redhat_kdump --enable --reserve-mb=128
+# ^ keyword.control.packages.kickstart
+# ^ meta.section.addon.kickstart
+#      ^ string.unquoted.addon.kickstart
+#                        ^ meta.argument.kickstart
+%end
