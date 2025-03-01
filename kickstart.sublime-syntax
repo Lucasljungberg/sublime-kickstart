@@ -116,19 +116,29 @@ contexts:
         1: keyword.control.script.kickstart
       push: section-scripts
   section-scripts:
-    - match: .*--interpreter=perl.*$
+    - meta_scope: meta.section.script.kickstart
+    - match: .*--interpreter=(perl|(/\S+)+/perl)[^#]*(#.*)?\n
+      scope: script.argument.kickstart
+      captures:
+        3: comment.line.kickstart
       embed: scope:source.perl
       escape: (%end)
       escape_captures:
         1: keyword.control.script.kickstart
       pop: true
-    - match: .*--interpreter=(/.+)*/?python.*$
+    - match: .*--interpreter=(python|(/\S+)+/python)[^#]*(#.*)?\n
+      scope: script.argument.kickstart
+      captures:
+        3: comment.line.kickstart
       embed: scope:source.python
       escape: (%end)
       escape_captures:
         1: keyword.control.script.kickstart
       pop: true
-    - match: .*$
+    - match: .*(#.+)\n
+      scope: script.argument.kickstart
+      captures:
+        1: comment.line.kickstart
       embed: scope:source.shell
       escape: (%end)
       escape_captures:
